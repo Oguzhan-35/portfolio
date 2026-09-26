@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Oguzhan Kul - CV</title>
+<!--
+  PRINT-READY CV SOURCE.
+
+  This is the file you print to PDF:
+    1. Open it in a browser
+    2. Ctrl+P  ->  Destination: "Save as PDF"
+    3. Margins: Default · Scale: 100% · uncheck "Headers and footers"
+    4. Save as  oguzhan-kul-cv.pdf  IN THIS SAME FOLDER
+    5. In js/data/profile.js set:
+         cvFile: 'assets/cv/oguzhan-kul-cv.pdf',
+
+  The "Download CV" button then appears automatically in the header,
+  the hero and the Resume section.
+
+  Keep this file and js/data/resume.js in sync when you change something.
+-->
+<style>
+  @page { size: A4; margin: 16mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+    color: #222;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    line-height: 1.45;
+  }
+  h1 { font-size: 26px; color: #1B4F72; margin: 0 0 4px 0; letter-spacing: 0.5px; }
+  .subtitle { font-size: 14px; color: #4a4a4a; margin: 0 0 8px 0; }
+  .contact { font-size: 12.5px; color: #333; margin: 0 0 14px 0; }
+  .contact a { color: #1B4F72; text-decoration: none; }
+  hr.top { border: none; border-top: 1px solid #c9c9c9; margin: 0 0 18px 0; }
+  h2 {
+    font-size: 13px;
+    color: #1B4F72;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1.5px solid #1B4F72;
+    padding-bottom: 3px;
+    margin: 20px 0 10px 0;
+  }
+  .summary { font-size: 13px; margin: 0; }
+  table.skills { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.skills td { padding: 3px 0; vertical-align: top; }
+  table.skills td.label { font-weight: 600; width: 190px; color: #1a1a1a; }
+  .entry { margin-bottom: 12px; }
+  .entry-header { display: flex; justify-content: space-between; align-items: baseline; }
+  .entry-title { font-weight: 700; font-size: 13.5px; }
+  .entry-title a { color: #1B4F72; text-decoration: none; }
+  .entry-date { font-size: 12px; font-style: italic; color: #555; white-space: nowrap; }
+  ul { margin: 4px 0 0 0; padding-left: 18px; font-size: 12.5px; }
+  li { margin-bottom: 3px; }
+  .edu-line { font-weight: 700; font-size: 13.5px; }
+
+  /* Printing adds its own @page margin, so the on-screen body padding is
+     pure waste there — dropping it is what keeps this to a single page. */
+  @media print {
+    body { padding: 0; max-width: none; }
+    h2 { margin: 15px 0 8px; }
+    .entry { margin-bottom: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>OĞUZHAN KUL</h1>
+<p class="subtitle">Business Analyst Candidate | MIS Graduate — Data Analytics &amp; Process Improvement</p>
+<p class="contact">İzmir, Turkey &nbsp;|&nbsp; +90 541 297 1933 &nbsp;|&nbsp; oguzhankul01@hotmail.com &nbsp;|&nbsp; <a href="https://www.linkedin.com/in/oğuzhan-kul-5936a341a">LinkedIn</a> &nbsp;|&nbsp; <a href="https://github.com/Oguzhan-35">GitHub</a></p>
+<hr class="top">
+
+<h2>Professional Summary</h2>
+<p class="summary">Management Information Systems graduate focused on analyzing business processes and turning them into data-driven solutions. Experienced with SQL and Power BI for data analysis, and Draw.io for process/workflow modeling. Through KoeStudio, delivered end-to-end digital solutions for two restaurant businesses — analyzing owners' operational needs (reservation flow, KVKK data-protection compliance) and translating them into technical requirements. Now looking to bring this analytical, process-driven approach to a business analyst role.</p>
+
+<h2>Technical Skills</h2>
+<table class="skills">
+  <tr><td class="label">Business Analysis</td><td>Requirements Analysis, Process Mapping (BPMN), Stakeholder Communication, Functional Documentation</td></tr>
+  <tr><td class="label">Data Analysis</td><td>SQL, Microsoft Power BI, Excel, SQLite</td></tr>
+  <tr><td class="label">Process Modeling</td><td>Draw.io</td></tr>
+  <tr><td class="label">Web Development</td><td>HTML5, CSS3, JavaScript</td></tr>
+  <tr><td class="label">Programming &amp; Automation</td><td>Python, AI-Assisted Workflows, Prompt Engineering</td></tr>
+  <tr><td class="label">Tools</td><td>Git, GitHub, Vercel, VS Code</td></tr>
+  <tr><td class="label">Languages</td><td>Turkish (Native), English (Fluent in speaking and writing)</td></tr>
+</table>
+
+<h2>Technical Projects</h2>
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">Freelance Web Developer — KoeStudio (Own business)</span>
+    <span class="entry-date">Ongoing</span>
+  </div>
+  <ul>
+    <li>Analyzed business needs and delivered end-to-end digital solutions for two restaurant brands (<a href="https://meydan-pide.vercel.app">Meydan Pide</a> and <a href="https://mekan-efes.vercel.app">Mekan Efes</a>) — responsive UI, built with HTML5/CSS3/JavaScript, deployed and hosted on Vercel.</li>
+    <li>Analyzed the reservation process and translated it into a WhatsApp-based flow; defined and implemented KVKK-compliant data handling requirements from the design stage onward.</li>
+    <li>Brand identity development: logo design and QR menu system (Mekan Efes).</li>
+    <li>Version control and codebase management: github.com/Oguzhan-35</li>
+  </ul>
+</div>
+
+<h2>Work Experience</h2>
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">Sales Consultant — Desa Deri</span>
+    <span class="entry-date">Aug 2026 – Present</span>
+  </div>
+  <ul>
+    <li>Conducted customer needs analysis to provide product consulting, contributing to monthly store sales performance.</li>
+    <li>Coordinated inventory tracking, visual merchandising, and store operational processes.</li>
+  </ul>
+</div>
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">Crew Member — McDonald's</span>
+    <span class="entry-date">Jun 2025 – Sep 2025</span>
+  </div>
+  <ul>
+    <li>Maintained process standards (speed, hygiene, service quality) in a high-volume operational environment.</li>
+  </ul>
+</div>
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">Store Staff — Shell</span>
+    <span class="entry-date">Jun 2023 – Sep 2023</span>
+  </div>
+  <ul>
+    <li>Ran daily store operational processes including POS transactions, inventory management, and customer service.</li>
+  </ul>
+</div>
+
+<h2>Education</h2>
+<div class="entry">
+  <div class="entry-header">
+    <span class="edu-line">Management Information Systems (B.Sc.) — Aydın Adnan Menderes University</span>
+    <span class="entry-date">Sep 2023 – Jun 2026</span>
+  </div>
+</div>
+
+</body>
+</html>

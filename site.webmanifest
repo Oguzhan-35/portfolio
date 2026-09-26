@@ -1,0 +1,17 @@
+{
+  "name": "Oğuzhan Kul — Business Analyst Candidate",
+  "short_name": "Oğuzhan Kul",
+  "description": "MIS graduate in İzmir. Business analysis, SQL and Power BI, plus the web development to build what the analysis calls for.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0B0D",
+  "theme_color": "#0A0B0D",
+  "icons": [
+    {
+      "src": "/assets/img/logo-dark.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

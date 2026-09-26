@@ -1,0 +1,19 @@
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editör
+.vscode/
+.idea/
+*.swp
+
+# Vercel
+.vercel/
+
+# Bağımlılıklar (bu projede kullanılmıyor, ileride eklenirse diye)
+node_modules/
+
+# Görsel üretirken oluşan geçici dosyalar
+shot.png
+*.tmp.png
