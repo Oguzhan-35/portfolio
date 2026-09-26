@@ -51,17 +51,24 @@ hiç basılmaz. Böylece kırık link veya çalışmayan buton oluşmaz.
 
 ## ⚠️ Yayına almadan önce yapılacaklar
 
-### 1. Alan adını değiştirin
+### 1. Alan adını değiştirin — ⬅️ KALAN TEK İŞ
 
 Şu an her yerde yer tutucu olarak `oguzhankul.vercel.app` yazıyor.
-Gerçek adresinizle değiştirilecek yerler:
+**Gerçek adres ancak Vercel'e bağladıktan sonra belli olur**, o yüzden
+bu adım en sona kaldı.
 
-- `index.html` — `<link rel="canonical">`, `og:url`
+Değiştirilecek yerler:
+
+- `index.html` — `canonical`, `og:url`, `og:image`, `twitter:image`, JSON-LD `url`
 - `js/data/profile.js` — `siteUrl`
 - `robots.txt` — `Sitemap:` satırı
 - `sitemap.xml` — `<loc>`
 
 Toplu bulmak için: `grep -rn "oguzhankul.vercel.app" .`
+
+Düzeltilmezse ne olur: Google sayfayı indeksler ama "asıl adres başka
+yerde" diye işaretler, LinkedIn önizlemesi yanlış adrese gider ve
+`og:image` yüklenmediği için paylaşımda görsel çıkmaz.
 
 ### 2. CV PDF'i — ✅ tamam
 
@@ -91,17 +98,17 @@ birden görünüyor: üst bar, hero ve CV bölümü.
 > CV aynı dosya adıyla değiştirildiği için o kuralın dışında tutuldu,
 > yoksa ziyaretçiler bir yıl boyunca eski CV'yi indirirdi.
 
-### 3. Sosyal medya önizleme görseli (og:image)
+### 3. Sosyal medya önizleme görseli — ✅ tamam
 
-Şu an **yok**. Bu yüzden siteyi LinkedIn veya WhatsApp'ta paylaşınca
-görsel çıkmaz, sadece başlık ve açıklama görünür. Olmayan bir dosyaya
-link vermemek için bilerek boş bırakıldı.
+`assets/img/og-cover.jpg` hazır (1200×630, 52 KB) ve `index.html` içinde
+`og:image` + `twitter:image` etiketleri aktif.
 
-Eklemek için:
+Kaynağı **`assets/img/og-cover.html`** — sitenin kendi tasarımıyla aynı
+(koyu zemin, ızgara, pirinç parıltı, logo). Değiştirmek isterseniz o
+dosyayı düzenleyip yeniden render edin; komut dosyanın içindeki yorumda.
 
-1. 1200×630 piksel bir kapak görseli hazırlayın (ad + unvan yeterli).
-2. `assets/img/og-cover.jpg` olarak kaydedin.
-3. `index.html` içindeki yorumlu iki `og:image` satırını açın.
+> `og:image` **mutlak URL** ister; göreli yol çalışmaz. Yani alan adı
+> değişince burası da güncellenmeli (aşağıdaki 1. maddeye dahil).
 
 ### 4. Ekran görüntüleri — ✅ tamam
 
