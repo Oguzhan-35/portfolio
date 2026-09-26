@@ -51,24 +51,23 @@ hiç basılmaz. Böylece kırık link veya çalışmayan buton oluşmaz.
 
 ## ⚠️ Yayına almadan önce yapılacaklar
 
-### 1. Alan adını değiştirin — ⬅️ KALAN TEK İŞ
+### 1. Alan adı — ✅ tamam
 
-Şu an her yerde yer tutucu olarak `oguzhankul.vercel.app` yazıyor.
-**Gerçek adres ancak Vercel'e bağladıktan sonra belli olur**, o yüzden
-bu adım en sona kaldı.
+Site yayında: **https://koestudio.vercel.app**
 
-Değiştirilecek yerler:
+Adres 4 dosyada, 8 yerde geçiyor. İleride değişirse hepsini birden
+güncelleyin:
 
 - `index.html` — `canonical`, `og:url`, `og:image`, `twitter:image`, JSON-LD `url`
 - `js/data/profile.js` — `siteUrl`
 - `robots.txt` — `Sitemap:` satırı
-- `sitemap.xml` — `<loc>`
+- `sitemap.xml` — `<loc>` (ve `<lastmod>`)
 
-Toplu bulmak için: `grep -rn "oguzhankul.vercel.app" .`
+Toplu bulmak için: `grep -rn "koestudio.vercel.app" .`
 
-Düzeltilmezse ne olur: Google sayfayı indeksler ama "asıl adres başka
-yerde" diye işaretler, LinkedIn önizlemesi yanlış adrese gider ve
-`og:image` yüklenmediği için paylaşımda görsel çıkmaz.
+Neden göreli yol kullanılamıyor: sosyal medya botları (LinkedIn,
+WhatsApp, X) `og:image` için **mutlak URL** ister. Göreli yol verilirse
+paylaşımda görsel hiç çıkmaz.
 
 ### 2. CV PDF'i — ✅ tamam
 

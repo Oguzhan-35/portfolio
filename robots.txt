@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 
-# DEĞİŞTİR: swap in your real domain once the site is live.
-Sitemap: https://oguzhankul.vercel.app/sitemap.xml
+Sitemap: https://koestudio.vercel.app/sitemap.xml

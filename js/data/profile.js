@@ -65,10 +65,12 @@ export const profile = {
   cvFile: 'assets/cv/oguzhan-kul-cv.pdf',
 
   /* ---- Canonical site URL ----------------------------------------------
-     DEĞİŞTİR: replace with your real domain once the site is live.
-     Used for canonical, Open Graph, sitemap and JSON-LD.
+     The live address, kept here as the single written record of it.
+     Nothing reads this at runtime — the absolute URLs that social
+     crawlers need are written directly into index.html, robots.txt and
+     sitemap.xml. If the domain changes, all four have to change.
      ---------------------------------------------------------------------- */
-  siteUrl: 'https://oguzhankul.vercel.app',
+  siteUrl: 'https://koestudio.vercel.app',
 };
 
 /* ============================================================
