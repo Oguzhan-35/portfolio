@@ -485,9 +485,9 @@ export function buildPages(env) {
     { title: 'Contact & CV', note: 'Get in touch', page: expSpread, go: expSpread },
   ];
 
-  const cover = { paint: paintCover, w: COVER_W, h: COVER_H };
-  const intro = { paint: paintIntro, w: COVER_W, h: COVER_H };
-  const pg = (paint) => ({ paint, w: PAGE_W, h: PAGE_H });
+  const cover = { paint: paintCover, w: COVER_W, h: COVER_H, face: 'front', round: 34 };
+  const intro = { paint: paintIntro, w: COVER_W, h: COVER_H, face: 'back', round: 34 };
+  const pg = (paint, face = 'front') => ({ paint, w: PAGE_W, h: PAGE_H, face, round: 8 });
 
   const fronts = [
     cover,
@@ -497,9 +497,9 @@ export function buildPages(env) {
   ];
   const backs = [
     intro,
-    ...cases.map((s) => pg(paintCaseText(s))),
-    pg(paintAbout),
-    pg(paintExperience),
+    ...cases.map((s) => pg(paintCaseText(s), 'back')),
+    pg(paintAbout, 'back'),
+    pg(paintExperience, 'back'),
   ];
 
   const names = [
@@ -524,6 +524,31 @@ export function paintPage(page, env, scale = 1.25) {
   canvas.height = Math.round(page.h * scale);
   const ctx = canvas.getContext('2d');
   ctx.scale(scale, scale);
+  /* Round the two outer corners (the spine side stays square) by clipping; the
+     transparent corners are cut away with alphaTest on the material. */
+  const r = page.round || 0;
+  if (r) {
+    const { w, h } = page;
+    const right = page.face !== 'back';
+    ctx.beginPath();
+    if (right) {
+      ctx.moveTo(0, 0);
+      ctx.lineTo(w - r, 0);
+      ctx.quadraticCurveTo(w, 0, w, r);
+      ctx.lineTo(w, h - r);
+      ctx.quadraticCurveTo(w, h, w - r, h);
+      ctx.lineTo(0, h);
+    } else {
+      ctx.moveTo(w, 0);
+      ctx.lineTo(r, 0);
+      ctx.quadraticCurveTo(0, 0, 0, r);
+      ctx.lineTo(0, h - r);
+      ctx.quadraticCurveTo(0, h, r, h);
+      ctx.lineTo(w, h);
+    }
+    ctx.closePath();
+    ctx.clip();
+  }
   const rects = page.paint(ctx, page.w, page.h, env) || [];
   return { canvas, rects, w: page.w, h: page.h };
 }

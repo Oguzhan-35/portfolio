@@ -1,0 +1,13 @@
+3D models in this folder come from Poly Haven (https://polyhaven.com) and are
+released under CC0 (public domain). Attribution is not required; it is listed
+here for the record.
+
+painted_wooden_table/        "Painted Wooden Table"      https://polyhaven.com/a/painted_wooden_table
+book_encyclopedia_set_01/    "Book Encyclopedia Set 01"  https://polyhaven.com/a/book_encyclopedia_set_01
+                             (only book05 of the set is used)
+
+Downloaded as glTF, 2k textures, file hashes verified against the Poly Haven API.
+
+vendor/jsm/GLTFLoader.js and vendor/utils/BufferGeometryUtils.js are from
+three.js r160 (MIT, see vendor/LICENSE-three.txt); only their `import ... from 'three'`
+lines were changed to local relative paths so no import map is needed under the CSP.

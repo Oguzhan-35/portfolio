@@ -8,6 +8,7 @@
    ============================================================ */
 
 import * as THREE from './vendor/three.module.min.js';
+import { GLTFLoader } from './vendor/jsm/GLTFLoader.js';
 import { profile } from '../js/data/profile.js';
 import { cases } from './pages.js';
 import { buildPages, paintPage } from './pages.js';
@@ -24,6 +25,9 @@ const SEG = 28;            // segments along a leaf — drives how smoothly it c
 const DESK_Y = 0;
 const BOARD = 0.02;        // thickness of the static back board
 const CURL = 0.85;         // how far the free edge lags while a page turns
+const EXTRA = 0.1;         // thickness of the unseen bulk of pages, so the book has real heft
+const extra = { r: EXTRA, l: 0 }; // how much of that bulk sits under each stack right now
+const CORNER = 0.05;       // rounded outer corners of the hardcover
 const TURN_MS = reduceMotion ? 1 : 1150;
 const STAGGER_MS = reduceMotion ? 0 : 140;
 
@@ -357,7 +361,14 @@ function skinGeometry(flip) {
 }
 
 function leafMaterial(painted, extra = {}) {
-  return new THREE.MeshStandardMaterial({ map: tex(painted.canvas), color: 0xc9c2b2, roughness: 0.85, envMapIntensity: 0.5, ...extra });
+  return new THREE.MeshStandardMaterial({
+    map: tex(painted.canvas),
+    color: 0xc9c2b2,
+    roughness: 0.85,
+    envMapIntensity: 0.5,
+    alphaTest: 0.5, // the painted pages carry rounded corners as transparency
+    ...extra,
+  });
 }
 
 function makeLeaf(k, def, env, isCover) {
@@ -398,7 +409,9 @@ function poseLeaf(leaf, v) {
   const seg = leaf.w / n;
   const theta = v * Math.PI;
   const s = Math.sin(theta);
-  const y0 = leaf.yRight + (leaf.yLeft - leaf.yRight) * smooth(v);
+  const yR = leaf.yRight + extra.r;
+  const yL = leaf.yLeft + (leaf.k > 0 ? extra.l : 0);
+  const y0 = yR + (yL - yR) * smooth(v);
   const off = leaf.thick * 0.42;
   const fp = leaf.fg.attributes.position;
   const bp = leaf.bg.attributes.position;
@@ -453,22 +466,37 @@ function buildBook(env) {
 
   /* Static back board with the closing page on top. */
   const black = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: 0.5 });
-  const board = new THREE.Mesh(new THREE.BoxGeometry(COVER_W, BOARD, COVER_H), black);
-  board.position.set(COVER_W / 2 - 0.02, BOARD / 2, 0);
+  /* Board outline: square at the spine, rounded at the three free corners. */
+  const x0 = -0.02;
+  const x1 = COVER_W - 0.02;
+  const hh = COVER_H / 2;
+  const r = CORNER;
+  const shape = new THREE.Shape();
+  shape.moveTo(x0, -hh);
+  shape.lineTo(x1 - r, -hh);
+  shape.quadraticCurveTo(x1, -hh, x1, -hh + r);
+  shape.lineTo(x1, hh - r);
+  shape.quadraticCurveTo(x1, hh, x1 - r, hh);
+  shape.lineTo(x0, hh);
+  shape.closePath();
+  const boardGeo = new THREE.ExtrudeGeometry(shape, { depth: BOARD, bevelEnabled: false, curveSegments: 8 });
+  boardGeo.rotateX(-Math.PI / 2);
+  const board = new THREE.Mesh(boardGeo, black);
   board.castShadow = board.receiveShadow = true;
   book.add(board);
 
-  const spine = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, COVER_H, 16, 1, false, 0, Math.PI), black);
-  spine.rotation.x = Math.PI / 2;
-  spine.rotation.y = Math.PI / 2;
-  spine.position.set(-0.02, 0.03, 0);
+  /* Spine: a half-round of leather that stands tall when closed and sinks flat when open. */
+  const spineGeo = new THREE.CylinderGeometry(1, 1, COVER_H, 20, 1, false, Math.PI, Math.PI);
+  spineGeo.rotateX(Math.PI / 2);
+  const spine = new THREE.Mesh(spineGeo, black);
   spine.castShadow = true;
   book.add(spine);
+  blocks.spine = spine;
 
   const basePage = paintPage(pages.base, env);
   const baseMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(W, H),
-    new THREE.MeshStandardMaterial({ map: tex(basePage.canvas), roughness: 0.85 }),
+    new THREE.MeshStandardMaterial({ map: tex(basePage.canvas), roughness: 0.85, alphaTest: 0.5 }),
   );
   baseMesh.rotation.x = -Math.PI / 2;
   baseMesh.position.set(W / 2, BOARD + 0.0006, 0);
@@ -479,8 +507,19 @@ function buildBook(env) {
 
   pages.leaves.forEach((def, k) => state.leaves.push(makeLeaf(k, def, env, k === 0)));
   layoutStacks();
-  state.leaves.forEach((l) => poseLeaf(l, 0));
   buildBlocks();
+  poseAll();
+}
+
+/* The bulk of unseen pages migrates from the right stack to the left as leaves turn. */
+function poseAll() {
+  const L = state.leaves;
+  let f = 0;
+  for (let k = 1; k < L.length; k++) f += smooth(L[k].value);
+  f /= Math.max(1, L.length - 1);
+  extra.r = EXTRA * (1 - f);
+  extra.l = EXTRA * f;
+  L.forEach((l) => poseLeaf(l, l.value));
 }
 
 /* Solid page blocks under each stack so the edges read as paper, not loose sheets,
@@ -502,7 +541,7 @@ function pageEdgeMaterial() {
   }
   const t = tex(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  const side = new THREE.MeshStandardMaterial({ map: t, roughness: 0.9 });
+  const side = new THREE.MeshStandardMaterial({ map: t, roughness: 0.9, emissive: 0x3a3226 });
   const flat = new THREE.MeshStandardMaterial({ color: 0xe9e3d3, roughness: 0.9 });
   return { mats: [side, side, flat, flat, side, side], map: t };
 }
@@ -555,13 +594,77 @@ function updateBlocks() {
     m.position.set(cx, baseY + height / 2, 0);
     m.userData.map.repeat.set(1, Math.max(1, height / 0.014));
   };
-  set(blocks.right, hR, W / 2, BOARD);
-  set(blocks.left, hL, -W / 2, coverT);
+  set(blocks.right, hR + extra.r, W / 2, BOARD);
+  set(blocks.left, hL + extra.l, -W / 2, coverT);
 
   const v = L[0].value;
+  /* Spine: tall and round while closed, a low ridge once the book lies open. */
+  const full = BOARD + extra.r + hR + coverT;
+  const sy = full / 2 + (0.02 - full / 2) * v;
+  blocks.spine.scale.set(0.05 + (0.025 - 0.05) * v, Math.max(0.02, sy), 1);
+  blocks.spine.position.set(-0.02, Math.max(0.02, sy), 0);
   const sh = blocks.shadow;
   sh.scale.set((COVER_W + 0.5) * (1 + v) , COVER_H + 0.5, 1);
   sh.position.x = (COVER_W / 2) * (1 - v) - 0.02;
+}
+
+/* ---------- downloaded models (Poly Haven, CC0) ----------
+   The table replaces the procedural desk. While the book is closed a photographed
+   hardcover sits on it; opening swaps in the animated book that carries the content. */
+const models = { closed: null, meshes: [] };
+
+async function loadModels() {
+  const loader = new GLTFLoader();
+  const [tableGltf, booksGltf] = await Promise.all([
+    loader.loadAsync('models/painted_wooden_table/painted_wooden_table_2k.gltf'),
+    loader.loadAsync('models/book_encyclopedia_set_01/book_encyclopedia_set_01_2k.gltf'),
+  ]);
+
+  /* Table: 1 scene unit ≈ 18 cm, so the 2.4 m table becomes ~14 units wide. Its top is the desk plane (y = 0). */
+  const TABLE_S = 6;
+  const table = tableGltf.scene;
+  table.scale.setScalar(TABLE_S);
+  table.position.y = -0.958 * TABLE_S;
+  table.traverse((o) => {
+    if (!o.isMesh) return;
+    o.receiveShadow = true;
+    o.castShadow = false;
+    o.material.envMapIntensity = 0.5;
+  });
+  scene.add(table);
+  scene.remove(desk);
+
+  /* One slim hardcover from the set, laid flat so its footprint matches the portfolio book. */
+  const src = booksGltf.scene.getObjectByName('book_encyclopedia_set_01_book05');
+  const pick_ = src.clone(true);
+  pick_.position.set(0, 0, 0);
+  const lay = new THREE.Group();
+  lay.rotation.z = Math.PI / 2;
+  lay.add(pick_);
+  const holder = new THREE.Group();
+  holder.add(lay);
+  holder.scale.setScalar(6.96);
+  holder.rotation.y = Math.PI; // spine (it is printed "Encyclopedia") faces away from the viewer
+  holder.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(holder);
+  const centre = box.getCenter(new THREE.Vector3());
+  holder.position.set(-centre.x, -box.min.y, -centre.z);
+  holder.traverse((o) => {
+    if (!o.isMesh) return;
+    o.castShadow = o.receiveShadow = true;
+    o.userData = { rects: [], w: 1, h: 1 };
+    o.material.envMapIntensity = 0.8;
+    models.meshes.push(o);
+  });
+  scene.add(holder);
+  models.closed = holder;
+}
+
+function syncBookVisibility() {
+  if (!models.closed) return;
+  const resting = state.turned === 0 && state.leaves.every((l) => !l.anim && l.value < 0.001);
+  models.closed.visible = resting;
+  book.visible = !resting;
 }
 
 /* ---------- turning ---------- */
@@ -583,14 +686,16 @@ function setSpread(n) {
 }
 
 function stepLeaves(now) {
+  let moving = false;
   for (const leaf of state.leaves) {
     const a = leaf.anim;
     if (!a) continue;
     const p = clamp((now - a.t0) / TURN_MS, 0, 1);
     leaf.value = a.from + (a.to - a.from) * ease(p);
-    poseLeaf(leaf, leaf.value);
+    moving = true;
     if (p >= 1) leaf.anim = null;
   }
+  if (moving) poseAll();
 }
 
 /* ---------- UI ---------- */
@@ -618,7 +723,7 @@ function buildClassicList() {
 }
 
 /* ---------- camera framing ---------- */
-const CLOSED = { dir: new THREE.Vector3(0, 0.82, 0.57).normalize(), look: new THREE.Vector3(0, 0, 0.05) };
+const CLOSED = { dir: new THREE.Vector3(0, 0.82, 0.57).normalize(), look: new THREE.Vector3(0, 0, -0.35) };
 const OPEN = { dir: new THREE.Vector3(0, 0.93, 0.36).normalize(), look: new THREE.Vector3(0, 0, 0.02) };
 const lean = { x: 0, y: 0, tx: 0, ty: 0 };
 let camOpen = 0;
@@ -630,7 +735,7 @@ function frameCamera(dt) {
   /* Distance that fits the whole spread (3.3 wide) at this aspect, or the cover when closed. */
   const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const openDist = Math.max(3.3, 1.8 / (tanH * camera.aspect));
-  const closedDist = Math.max(4.1, 1.5 / (tanH * camera.aspect) + 1.4);
+  const closedDist = Math.max(3.7, 1.1 / (tanH * camera.aspect) + 1.3);
   const dist = closedDist + (openDist - closedDist) * e;
   camTarget.lerpVectors(CLOSED.look, OPEN.look, e);
   const dir = new THREE.Vector3().lerpVectors(CLOSED.dir, OPEN.dir, e).normalize();
@@ -662,7 +767,8 @@ function pick(ev) {
   const r = $('stage').getBoundingClientRect();
   ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
-  const hits = ray.intersectObjects(state.pickables, false);
+  const list = models.closed && models.closed.visible ? models.meshes : state.pickables;
+  const hits = ray.intersectObjects(list, false);
   if (!hits.length) return null;
   const hit = hits[0];
   const d = hit.object.userData;
@@ -758,6 +864,8 @@ async function boot() {
 
   buildBook({ images, base: '../' });
   resize();
+  /* The scene works without the models (procedural desk and book), so a failed load is not fatal. */
+  await loadModels().catch((err) => console.warn('3D models not loaded, using the built-in scene.', err));
   $('loading').hidden = true;
 
   const start = parseInt(location.hash.slice(1), 10);
@@ -765,11 +873,12 @@ async function boot() {
     state.leaves.forEach((l, k) => {
       if (k < start) {
         l.value = 1;
-        poseLeaf(l, 1);
+        
       }
     });
     state.turned = clamp(start, 0, state.total);
     camOpen = 1;
+    poseAll();
   }
   syncUi();
 
@@ -779,6 +888,7 @@ async function boot() {
     last = now;
     stepLeaves(now);
     updateBlocks();
+    syncBookVisibility();
     frameCamera(dt);
     renderer.render(scene, camera);
   });
