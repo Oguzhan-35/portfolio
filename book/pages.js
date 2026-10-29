@@ -329,7 +329,8 @@ function paintCaseImage(site) {
     text(ctx, title, 56, h - 92, tf, '#fff');
     text(ctx, site.year, w - 56, h - 80, MONO(18), '#d8d4ca', 'right');
     gutter(ctx, w, h, 'left', 0.3);
-    return site.primary ? [{ x: 0, y: 0, w, h, href: site.primary.href }] : [];
+    /* No page-wide link: a click anywhere here turns the page. The link lives on the facing text page. */
+    return [];
   };
 }
 
