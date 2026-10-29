@@ -21,7 +21,7 @@ import { resume } from '../js/data/resume.js';
 export const PAGE_W = 1024;
 export const PAGE_H = 640;
 export const COVER_W = 1024;
-export const COVER_H = 670;
+export const COVER_H = 640;
 
 const PAPER = '#F3F2EE';
 const INK = '#111111';
@@ -130,14 +130,13 @@ function paper(ctx, w, h, spine) {
 }
 
 function gutter(ctx, w, h, spine, a) {
-  const g =
-    spine === 'left'
-      ? ctx.createLinearGradient(0, 0, 90, 0)
-      : ctx.createLinearGradient(w, 0, w - 90, 0);
+  /* The hinge runs along the top edge of a front face and the bottom edge of a back face. */
+  const top = spine === 'left';
+  const g = top ? ctx.createLinearGradient(0, 0, 0, 80) : ctx.createLinearGradient(0, h, 0, h - 80);
   g.addColorStop(0, `rgba(0,0,0,${a})`);
   g.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g;
-  ctx.fillRect(spine === 'left' ? 0 : w - 90, 0, 90, h);
+  ctx.fillRect(0, top ? 0 : h - 80, w, 80);
 }
 
 function heading(ctx, label, n, x = 64, y = 56) {
@@ -169,8 +168,14 @@ function chip(ctx, label, x, y) {
 /* ---------- the pages ---------- */
 
 function paintCover(ctx, w, h) {
-  ctx.fillStyle = '#0b0b0c';
+  ctx.fillStyle = '#5b3520';
   ctx.fillRect(0, 0, w, h);
+  for (let i = 0; i < 40; i++) {
+    ctx.fillStyle = `rgba(${Math.random() > 0.5 ? '190,130,80' : '30,12,4'},0.07)`;
+    ctx.beginPath();
+    ctx.arc(Math.random() * w, Math.random() * h, 40 + Math.random() * 120, 0, Math.PI * 2);
+    ctx.fill();
+  }
   for (let i = 0; i < 5000; i++) {
     ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.018)' : 'rgba(0,0,0,0.25)';
     ctx.fillRect(Math.random() * w, Math.random() * h, 1.6, 1.6);
@@ -181,7 +186,12 @@ function paintCover(ctx, w, h) {
   ctx.fillStyle = v;
   ctx.fillRect(0, 0, w, h);
 
-  /* Gold-foil lettering. */
+  coverFoil(ctx, w, h);
+  return [];
+}
+
+/* The gold-foil lettering on its own, so it can also be laid over the photographed book. */
+export function coverFoil(ctx, w, h) {
   const foil = ctx.createLinearGradient(0, h * 0.35, 0, h * 0.65);
   foil.addColorStop(0, '#ecd08d');
   foil.addColorStop(0.5, '#b88a36');
@@ -206,7 +216,7 @@ function paintCover(ctx, w, h) {
   ctx.lineTo(w / 2 + 70, h / 2 + 14);
   ctx.stroke();
   ctx.textAlign = 'left';
-  return [];
+  ctx.textBaseline = 'alphabetic';
 }
 
 /* Inside front cover — the dark endpaper carries the introduction. */
@@ -529,22 +539,22 @@ export function paintPage(page, env, scale = 1.25) {
   const r = page.round || 0;
   if (r) {
     const { w, h } = page;
-    const right = page.face !== 'back';
+    const front = page.face !== 'back';
     ctx.beginPath();
-    if (right) {
+    if (front) {
       ctx.moveTo(0, 0);
-      ctx.lineTo(w - r, 0);
-      ctx.quadraticCurveTo(w, 0, w, r);
+      ctx.lineTo(w, 0);
       ctx.lineTo(w, h - r);
       ctx.quadraticCurveTo(w, h, w - r, h);
-      ctx.lineTo(0, h);
+      ctx.lineTo(r, h);
+      ctx.quadraticCurveTo(0, h, 0, h - r);
     } else {
-      ctx.moveTo(w, 0);
+      ctx.moveTo(0, h);
+      ctx.lineTo(w, h);
+      ctx.lineTo(w, r);
+      ctx.quadraticCurveTo(w, 0, w - r, 0);
       ctx.lineTo(r, 0);
       ctx.quadraticCurveTo(0, 0, 0, r);
-      ctx.lineTo(0, h - r);
-      ctx.quadraticCurveTo(0, h, r, h);
-      ctx.lineTo(w, h);
     }
     ctx.closePath();
     ctx.clip();

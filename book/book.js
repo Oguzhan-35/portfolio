@@ -11,21 +11,21 @@ import * as THREE from './vendor/three.module.min.js';
 import { GLTFLoader } from './vendor/jsm/GLTFLoader.js';
 import { profile } from '../js/data/profile.js';
 import { cases } from './pages.js';
-import { buildPages, paintPage } from './pages.js';
+import { buildPages, paintPage, coverFoil } from './pages.js';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- dimensions (scene units) ---------- */
-const W = 1.6;             // page width
-const H = 1.0;             // page height (16:10)
+const W = 1.0;             // page depth, measured away from the spine
+const H = 1.6;             // page length along the spine (16:10 with W)
 const COVER_W = W + 0.05;  // the cover overhangs the pages
 const COVER_H = H + 0.08;
 const SEG = 28;            // segments along a leaf — drives how smoothly it curls
 const DESK_Y = 0;
 const BOARD = 0.02;        // thickness of the static back board
 const CURL = 0.85;         // how far the free edge lags while a page turns
-const EXTRA = 0.1;         // thickness of the unseen bulk of pages, so the book has real heft
+const EXTRA = 0.06;        // thickness of the unseen bulk of pages, so the book has real heft
 const extra = { r: EXTRA, l: 0 }; // how much of that bulk sits under each stack right now
 const CORNER = 0.05;       // rounded outer corners of the hardcover
 const TURN_MS = reduceMotion ? 1 : 1150;
@@ -328,6 +328,10 @@ addProps();
 
 /* ---------- the book ---------- */
 const book = new THREE.Group();
+/* Built hinged at local x = 0 with pages along +x; turn it so the hinge runs along the back edge
+   and the pages extend toward the viewer (mirrored so they read left to right). */
+book.rotation.y = Math.PI / 2;
+book.scale.x = -1;
 scene.add(book);
 
 const state = {
@@ -339,21 +343,22 @@ const state = {
   base: null,
 };
 
-/* Geometry for one skin of a leaf: SEG+1 columns × 2 rows (top edge, bottom edge). */
-function skinGeometry(flip) {
+/* Geometry for one skin of a leaf: SEG+1 columns (away from the hinge) × 2 rows (left and right ends).
+   The book is top-bound: the hinge runs along the back edge, so a page's top is at the hinge. */
+function skinGeometry(back) {
   const n = SEG;
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array((n + 1) * 2 * 3), 3));
   const uv = new Float32Array((n + 1) * 2 * 2);
   for (let i = 0; i <= n; i++) {
-    const u = flip ? 1 - i / n : i / n;
-    uv.set([u, 1, u, 0], i * 4);
+    const v = back ? i / n : 1 - i / n; // back faces read head-to-tail after the flip
+    uv.set([0, v, 1, v], i * 4);
   }
   g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   const idx = [];
   for (let i = 0; i < n; i++) {
     const a = i * 2, b = a + 1, c = a + 2, d = a + 3;
-    if (flip) idx.push(a, c, b, b, c, d);
+    if (back) idx.push(a, c, b, b, c, d);
     else idx.push(a, b, c, b, d, c);
   }
   g.setIndex(idx);
@@ -465,7 +470,7 @@ function buildBook(env) {
   state.total = pages.leaves.length;
 
   /* Static back board with the closing page on top. */
-  const black = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, roughness: 0.5 });
+  const black = new THREE.MeshStandardMaterial({ color: 0x3b2314, roughness: 0.55 });
   /* Board outline: square at the spine, rounded at the three free corners. */
   const x0 = -0.02;
   const x1 = COVER_W - 0.02;
@@ -494,12 +499,16 @@ function buildBook(env) {
   blocks.spine = spine;
 
   const basePage = paintPage(pages.base, env);
+  const baseGeo = new THREE.BufferGeometry();
+  baseGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, -H / 2, 0, 0, H / 2, W, 0, -H / 2, W, 0, H / 2]), 3));
+  baseGeo.setAttribute('uv', new THREE.BufferAttribute(new Float32Array([0, 1, 1, 1, 0, 0, 1, 0]), 2));
+  baseGeo.setIndex([0, 1, 2, 1, 3, 2]);
+  baseGeo.computeVertexNormals();
   const baseMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(W, H),
+    baseGeo,
     new THREE.MeshStandardMaterial({ map: tex(basePage.canvas), roughness: 0.85, alphaTest: 0.5 }),
   );
-  baseMesh.rotation.x = -Math.PI / 2;
-  baseMesh.position.set(W / 2, BOARD + 0.0006, 0);
+  baseMesh.position.set(0, BOARD + 0.0006, 0);
   baseMesh.receiveShadow = true;
   baseMesh.userData = { rects: basePage.rects, w: basePage.w, h: basePage.h };
   book.add(baseMesh);
@@ -643,7 +652,7 @@ async function loadModels() {
   lay.add(pick_);
   const holder = new THREE.Group();
   holder.add(lay);
-  holder.scale.setScalar(6.96);
+  holder.scale.set(7.09, 7.0, 6.44);
   holder.rotation.y = Math.PI; // spine (it is printed "Encyclopedia") faces away from the viewer
   holder.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(holder);
@@ -656,8 +665,22 @@ async function loadModels() {
     o.material.envMapIntensity = 0.8;
     models.meshes.push(o);
   });
-  scene.add(holder);
-  models.closed = holder;
+  /* Same gold-foil lettering as the animated cover, laid just above the leather. */
+  const foilCanvas = document.createElement('canvas');
+  foilCanvas.width = 1024;
+  foilCanvas.height = 640;
+  coverFoil(foilCanvas.getContext('2d'), 1024, 640);
+  const foil = new THREE.Mesh(
+    new THREE.PlaneGeometry(COVER_H, COVER_W),
+    new THREE.MeshStandardMaterial({ map: tex(foilCanvas), transparent: true, roughness: 0.4, metalness: 0.4, depthWrite: false }),
+  );
+  foil.rotation.x = -Math.PI / 2;
+  foil.position.set(0, box.max.y - box.min.y + 0.002, 0);
+  foil.receiveShadow = true;
+  const closedGroup = new THREE.Group();
+  closedGroup.add(holder, foil);
+  scene.add(closedGroup);
+  models.closed = closedGroup;
 }
 
 function syncBookVisibility() {
@@ -724,7 +747,7 @@ function buildClassicList() {
 
 /* ---------- camera framing ---------- */
 const CLOSED = { dir: new THREE.Vector3(0, 0.82, 0.57).normalize(), look: new THREE.Vector3(0, 0, -0.35) };
-const OPEN = { dir: new THREE.Vector3(0, 0.93, 0.36).normalize(), look: new THREE.Vector3(0, 0, 0.02) };
+const OPEN = { dir: new THREE.Vector3(0, 0.96, 0.27).normalize(), look: new THREE.Vector3(0, 0, 0.12) };
 const lean = { x: 0, y: 0, tx: 0, ty: 0 };
 let camOpen = 0;
 
@@ -734,7 +757,7 @@ function frameCamera(dt) {
   const e = smooth(camOpen);
   /* Distance that fits the whole spread (3.3 wide) at this aspect, or the cover when closed. */
   const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const openDist = Math.max(3.3, 1.8 / (tanH * camera.aspect));
+  const openDist = Math.max(4.8, 1.2 / (tanH * camera.aspect) + 0.5);
   const closedDist = Math.max(3.7, 1.1 / (tanH * camera.aspect) + 1.3);
   const dist = closedDist + (openDist - closedDist) * e;
   camTarget.lerpVectors(CLOSED.look, OPEN.look, e);
@@ -748,7 +771,7 @@ function frameCamera(dt) {
 
   /* The book is built hinged at x = 0; slide it so the closed cover sits centred. */
   const cover = state.leaves[0];
-  book.position.x = -(W / 2) * (1 - (cover ? cover.value : 0));
+  book.position.z = -(W / 2) * (1 - (cover ? cover.value : 0));
 }
 
 function resize() {
