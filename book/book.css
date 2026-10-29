@@ -1,0 +1,192 @@
+:root {
+  --bg: #050403;
+  --ink: #f3f2ee;
+  --ink-2: #b9b3a6;
+  --accent: #e0a93f;
+  --font: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  overflow: hidden;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: manipulation;
+}
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+a { color: inherit; }
+
+.top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 1.1rem 1.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  z-index: 3;
+}
+.top a {
+  text-decoration: none;
+  color: var(--ink-2);
+  transition: color 0.2s;
+}
+.top a:hover, .top a:focus-visible { color: var(--ink); }
+
+.hero {
+  position: fixed;
+  left: clamp(1.4rem, 5vw, 4.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: min(30rem, 90vw);
+  z-index: 2;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.hero.gone {
+  opacity: 0;
+  transform: translate(-2rem, -50%);
+  pointer-events: none;
+}
+.eyebrow {
+  margin: 0 0 0.6rem;
+  font: 600 0.78rem ui-monospace, Consolas, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 6.5vw, 4.6rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+.tag {
+  margin: 1rem 0 1.6rem;
+  color: var(--ink-2);
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.55;
+}
+
+.open {
+  display: inline-block;
+  font: 700 0.95rem var(--font);
+  color: #111;
+  background: var(--ink);
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.5rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s, background 0.2s;
+}
+.open:hover { background: #fff; transform: translateY(-1px); }
+
+.pager {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.45rem 0.55rem;
+  background: rgba(20, 17, 13, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+  z-index: 3;
+  max-width: calc(100vw - 1.5rem);
+}
+.pager[hidden] { display: none; }
+.pager button {
+  font: 700 0.9rem var(--font);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  border-radius: 999px;
+  min-width: 2.4rem;
+  height: 2.4rem;
+  padding: 0 0.9rem;
+  cursor: pointer;
+}
+.pager button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.18); }
+.pager button:disabled { opacity: 0.3; cursor: default; }
+.pager .ghost { background: transparent; color: var(--ink-2); }
+#count {
+  font: 600 0.8rem ui-monospace, Consolas, monospace;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loading {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  z-index: 5;
+}
+.loading[hidden] { display: none; }
+
+.nogl {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.8rem;
+  text-align: center;
+  padding: 2rem;
+  background: var(--bg);
+  z-index: 6;
+}
+.nogl[hidden] { display: none; }
+.nogl h2 { margin: 0; }
+.nogl p { margin: 0; color: var(--ink-2); }
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+@media (max-width: 640px), (max-aspect-ratio: 3/2) {
+  .hero { top: 12%; transform: none; }
+  .hero.gone { transform: translateY(-1rem); }
+  #count { display: none; }
+}

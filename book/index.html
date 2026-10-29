@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oğuzhan Kul — Portfolio Book</title>
+<meta name="description" content="An interactive 3D portfolio: a hardcover book on a desk. Business analysis, data and web projects by Oğuzhan Kul.">
+<meta name="theme-color" content="#050403">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="book.css">
+</head>
+<body>
+<canvas id="stage" role="img" aria-label="Interactive 3D portfolio book. Use the buttons or arrow keys to turn pages."></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="back" href="../">← Classic site</a>
+  <a class="cv" id="cv" href="#" hidden download>Download CV</a>
+</header>
+
+<section class="hero" id="hero">
+  <p class="eyebrow">Portfolio</p>
+  <h1>Oğuzhan Kul</h1>
+  <p class="tag" id="tag"></p>
+  <button class="open" id="openBtn" type="button">Open the book</button>
+</section>
+
+<nav class="pager" id="pager" aria-label="Book navigation" hidden>
+  <button id="prev" type="button" aria-label="Previous spread">←</button>
+  <span id="count"></span>
+  <button id="next" type="button" aria-label="Next spread">→</button>
+  <button id="close" type="button" class="ghost">Close book</button>
+</nav>
+
+<p class="loading" id="loading">Lighting the lamp…</p>
+
+<div class="nogl" id="nogl" hidden>
+  <h2>This book needs WebGL.</h2>
+  <p>Your browser could not start the 3D scene. The same work is on the classic site.</p>
+  <a class="open" href="../">Open the classic site</a>
+</div>
+
+<p class="sr" id="sr" aria-live="polite"></p>
+<section class="sr" aria-label="Selected work">
+  <h2>Selected work</h2>
+  <ul id="classic-list"></ul>
+</section>
+
+<noscript><p class="nogl">This portfolio book needs JavaScript. <a href="../">Open the classic site</a>.</p></noscript>
+<script type="module" src="book.js"></script>
+</body>
+</html>

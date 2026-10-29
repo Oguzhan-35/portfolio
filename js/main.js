@@ -123,7 +123,8 @@ window.matchMedia('(min-width: 900px)').addEventListener('change', (event) => {
 /* ============================================================
    05. ACTIVE SECTION IN NAV
    ============================================================ */
-const navLinks = [...document.querySelectorAll('.nav__link')];
+const navLinks = [...document.querySelectorAll('.nav__link')]
+  .filter((link) => link.getAttribute('href').startsWith('#'));
 const sections = navLinks
   .map((link) => document.querySelector(link.getAttribute('href')))
   .filter(Boolean);
